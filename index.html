@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StreamUniverse | Live Discovery</title>
+  <style>
+    :root {
+      --bg: #050611;
+      --panel: rgba(14, 18, 38, 0.72);
+      --panel-strong: rgba(22, 27, 56, 0.9);
+      --text: #f7fbff;
+      --muted: #9aa7c7;
+      --cyan: #20f7ff;
+      --pink: #ff2bd6;
+      --violet: #8d4dff;
+      --green: #39ff8a;
+      --orange: #ffb020;
+      --red: #ff315a;
+      --glass-border: rgba(255, 255, 255, 0.16);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+      --radius-lg: 30px;
+      --radius-md: 22px;
+      --radius-sm: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 14%, rgba(255, 43, 214, 0.26), transparent 28%),
+        radial-gradient(circle at 82% 8%, rgba(32, 247, 255, 0.22), transparent 30%),
+        radial-gradient(circle at 50% 92%, rgba(141, 77, 255, 0.24), transparent 34%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: radial-gradient(circle, black, transparent 78%);
+      z-index: -3;
+    }
+
+    .aurora {
+      position: fixed;
+      inset: -30% -20%;
+      background: conic-gradient(from 180deg, transparent, rgba(32,247,255,.14), rgba(255,43,214,.18), rgba(57,255,138,.12), transparent);
+      filter: blur(65px);
+      animation: spin 18s linear infinite;
+      z-index: -4;
+    }
+
+    #particles { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
+    .particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 14px var(--cyan);
+      animation: drift var(--duration) linear infinite;
+      opacity: .75;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes drift {
+      from { transform: translate3d(var(--x), 105vh, 0) scale(.8); }
+      to { transform: translate3d(calc(var(--x) + var(--dx)), -10vh, 0) scale(1.5); }
+    }
+    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 20px rgba(255,49,90,.35); } 50% { box-shadow: 0 0 42px rgba(32,247,255,.6), 0 0 70px rgba(255,43,214,.32); } }
+    @keyframes shimmer { to { transform: translateX(100%); } }
+    @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+    @keyframes floatIn { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes gradientMove { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+    .app { width: min(1500px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0 120px; }
+    .glass {
+      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow);
+    }
+
+    header {
+      position: sticky;
+      top: 14px;
+      z-index: 50;
+      display: grid;
+      grid-template-columns: auto minmax(220px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 26px;
+      animation: floatIn .7s ease both;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; font-weight: 950; letter-spacing: -.04em; font-size: clamp(1.1rem, 2vw, 1.7rem); }
+    .logo-mark { width: 46px; height: 46px; border-radius: 16px; background: linear-gradient(135deg, var(--cyan), var(--pink), var(--violet)); background-size: 250% 250%; animation: gradientMove 4s ease infinite; display: grid; place-items: center; box-shadow: 0 0 30px rgba(32,247,255,.4); }
+    .search { position: relative; }
+    .search input { width: 100%; padding: 17px 50px; color: var(--text); background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; outline: none; font-size: 1rem; }
+    .search span { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); }
+    .filters { display: flex; gap: 9px; flex-wrap: wrap; justify-content: flex-end; }
+    .chip { border: 1px solid rgba(255,255,255,.14); color: var(--text); background: rgba(255,255,255,.07); padding: 10px 14px; border-radius: 999px; cursor: pointer; transition: .25s ease; }
+    .chip:hover, .chip.active { transform: translateY(-2px); border-color: var(--cyan); box-shadow: 0 0 22px rgba(32,247,255,.28); background: rgba(32,247,255,.13); }
+
+    .ticker { margin: 18px 0; overflow: hidden; border-radius: 18px; padding: 12px 0; border: 1px solid rgba(255,49,90,.35); background: linear-gradient(90deg, rgba(255,49,90,.18), rgba(32,247,255,.08)); }
+    .ticker-track { white-space: nowrap; animation: ticker 18s linear infinite; font-weight: 850; color: #fff; text-shadow: 0 0 16px rgba(255,49,90,.8); }
+
+    .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px; }
+    .sidebar { display: flex; flex-direction: column; gap: 18px; }
+    .panel { border-radius: var(--radius-md); padding: 18px; }
+    .panel h3, .section-title h2 { margin: 0; }
+    .side-list { display: grid; gap: 12px; margin-top: 14px; }
+    .side-item { display: grid; grid-template-columns: 42px 1fr auto; gap: 10px; align-items: center; padding: 10px; background: rgba(255,255,255,.06); border-radius: 16px; }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.45); cursor: pointer; }
+    .mini { font-size: .82rem; color: var(--muted); }
+    .rank { color: var(--green); font-weight: 900; }
+
+    .hero { position: relative; overflow: hidden; min-height: 430px; border-radius: var(--radius-lg); padding: 30px; display: flex; align-items: end; isolation: isolate; }
+    .hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .48; filter: saturate(1.35) contrast(1.1); z-index: -2; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 10%, rgba(5,6,17,.75) 76%), radial-gradient(circle at 70% 20%, rgba(32,247,255,.28), transparent 30%); z-index: -1; }
+    .hero-content { max-width: 780px; animation: floatIn .9s ease both .15s; }
+    .live-badge { display: inline-flex; gap: 8px; align-items: center; padding: 8px 13px; border-radius: 999px; background: var(--red); font-weight: 950; animation: pulseGlow 1.6s ease-in-out infinite; }
+    .hero h1 { font-size: clamp(2.2rem, 6vw, 5.8rem); line-height: .9; margin: 18px 0 14px; letter-spacing: -.08em; }
+    .hero-actions, .card-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .btn { border: 0; border-radius: 999px; padding: 13px 20px; color: white; font-weight: 900; cursor: pointer; background: linear-gradient(135deg, var(--pink), var(--violet), var(--cyan)); background-size: 220% 220%; animation: gradientMove 4s ease infinite; box-shadow: 0 0 24px rgba(255,43,214,.35); text-decoration: none; display: inline-flex; align-items:center; gap:8px; }
+    .btn.secondary { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); animation: none; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 22px 0; }
+    .stat { padding: 18px; border-radius: 20px; position: relative; overflow: hidden; }
+    .stat::before, .skeleton::before { content:""; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent); animation: shimmer 2.2s infinite; }
+    .stat b { display:block; font-size: clamp(1.6rem, 3vw, 2.6rem); }
+
+    .section-title { display:flex; align-items:end; justify-content:space-between; margin: 26px 0 15px; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .card { position: relative; overflow: hidden; border-radius: var(--radius-md); transition: .3s ease; cursor: pointer; }
+    .card:hover { transform: translateY(-8px) scale(1.01); border-color: rgba(32,247,255,.6); }
+    .card.previewing { animation: pulseGlow 1.3s infinite; }
+    .thumb-wrap { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #111; }
+    .thumb, .preview-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:.35s ease; }
+    .preview-video { opacity: 0; transform: scale(1.08); }
+    .card.previewing .preview-video { opacity: 1; transform: scale(1); }
+    .card.previewing .thumb { opacity: 0; }
+    .overlay-controls { position:absolute; inset:auto 12px 12px 12px; display:flex; justify-content:space-between; opacity:0; transition:.3s; }
+    .card.previewing .overlay-controls { opacity:1; }
+    .pill { padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.14); font-weight:800; font-size:.8rem; }
+    .platform { position:absolute; top:12px; right:12px; }
+    .trend { position:absolute; top:12px; left:12px; color:#050611; background:var(--green); }
+    .card-body { padding: 15px; }
+    .creator-row { display:grid; grid-template-columns:44px 1fr auto; gap:11px; align-items:center; }
+    .verify { color: var(--cyan); text-shadow:0 0 10px var(--cyan); }
+    .card h4 { margin: 12px 0 10px; font-size: 1.05rem; }
+    .meta { display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:.88rem; }
+    .chat-preview { margin-top: 12px; max-height:0; overflow:hidden; transition:.35s; display:grid; gap:6px; }
+    .card.previewing .chat-preview { max-height: 110px; }
+    .chat-line { padding:7px 9px; border-radius: 11px; background: rgba(255,255,255,.07); font-size:.82rem; }
+
+    .recommend { margin-top: 20px; padding: 22px; border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(141,77,255,.18), rgba(32,247,255,.08)); }
+    .skeletons { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:16px 0; }
+    .skeleton { height: 110px; border-radius:18px; background:rgba(255,255,255,.07); position:relative; overflow:hidden; }
+
+    .toast { position: fixed; right: 22px; top: 110px; z-index: 80; padding: 16px 18px; border-radius: 18px; transform: translateX(130%); transition: .5s ease; }
+    .toast.show { transform: translateX(0); }
+    .mini-player { position: fixed; right: 20px; bottom: 20px; width: min(360px, calc(100% - 40px)); border-radius: 22px; overflow:hidden; z-index:70; display:none; }
+    .mini-player.show { display:block; animation: floatIn .35s ease; }
+    .mini-player video { width:100%; display:block; aspect-ratio:16/9; object-fit:cover; }
+    .mini-head { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(5,6,17,.88); }
+    .modal { position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.62); z-index:90; padding:20px; }
+    .modal.show { display:grid; }
+    .profile { width:min(460px,100%); border-radius:28px; padding:24px; animation:floatIn .25s ease; }
+    .close { float:right; background:none; color:white; border:0; font-size:1.5rem; cursor:pointer; }
+
+    @media (max-width: 1120px) { .layout { grid-template-columns: 1fr; } .sidebar { display:grid; grid-template-columns:repeat(2,1fr); } .grid { grid-template-columns:repeat(2,1fr); } header { grid-template-columns:1fr; } .filters { justify-content:flex-start; } }
+    @media (max-width: 680px) { .app { width:min(100% - 18px, 1500px); padding-top:9px; } .hero { min-height: 520px; padding:20px; } .stats, .grid, .sidebar, .skeletons { grid-template-columns:1fr; } .section-title { align-items:flex-start; flex-direction:column; gap:7px; } }
+  </style>
+</head>
+<body>
+  <div class="aurora"></div>
+  <div id="particles"></div>
+  <div class="app">
+    <header class="glass">
+      <div class="logo"><div class="logo-mark">▶</div><span>StreamUniverse</span></div>
+      <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search creators, games, music, platforms..." /></label>
+      <nav class="filters" id="filters"></nav>
+    </header>
+
+    <div class="ticker"><div class="ticker-track">🔴 MrBeast just went LIVE • Speed hit 500K viewers • New tournament started • VTuber concert broke chat • Kick creator rising fast • Twitch drops are active • </div></div>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <section class="panel glass"><h3>Trending Creators</h3><div class="side-list" id="trendingCreators"></div></section>
+        <section class="panel glass"><h3>Top Live Now</h3><div class="side-list" id="topLive"></div></section>
+        <section class="panel glass"><h3>Recommended Streams</h3><div class="side-list" id="sideRecommended"></div></section>
+        <section class="panel glass"><h3>Recently Live</h3><div class="side-list" id="recentlyLive"></div></section>
+        <section class="panel glass"><h3>Leaderboard</h3><div class="side-list"><div class="side-item"><b>#1</b><div>Most watched creator</div><span>MrBeast</span></div><div class="side-item"><b>#2</b><div>Fastest growing stream</div><span>Speed</span></div><div class="side-item"><b>#3</b><div>New viral stream</div><span>NeonNia</span></div></div></section>
+      </aside>
+
+      <section>
+        <section class="hero glass">
+          <video class="hero-bg" autoplay muted loop playsinline src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"></video>
+          <div class="hero-content">
+            <span class="live-badge">● LIVE FEATURED</span>
+            <h1>MrBeast's $1,000,000 Intergalactic Live Challenge</h1>
+            <div class="creator-row" style="max-width:430px"><img class="avatar" data-profile="0" src="https://i.pravatar.cc/100?img=12" alt="MrBeast avatar"><div><b>MrBeast</b><div class="mini">YouTube • 742K watching • verified</div></div><span class="verify">◆</span></div>
+            <div class="hero-actions"><a class="btn" href="https://www.youtube.com/live" target="_blank" rel="noreferrer">Watch Original</a><button class="btn secondary">＋ Follow</button></div>
+          </div>
+        </section>
+
+        <section class="stats">
+          <div class="stat glass"><span>Total Live Channels</span><b id="statChannels">0</b></div>
+          <div class="stat glass"><span>Total Viewers Online</span><b id="statViewers">0</b></div>
+          <div class="stat glass"><span>Platforms Connected</span><b>12</b></div>
+        </section>
+
+        <div class="skeletons" id="skeletons"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+        <div class="section-title"><div><h2>Live Streams</h2><p class="mini">Hover for 1 second on desktop. Long press on mobile for floating preview.</p></div><span class="pill" id="resultCount"></span></div>
+        <section class="grid" id="grid"></section>
+
+        <section class="recommend glass"><div class="section-title"><div><h2>✨ Recommended For You</h2><p class="mini">Fake AI ranks streams by velocity, chat energy, and your cosmic vibe.</p></div></div><section class="grid" id="recommended"></section></section>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast glass" id="toast">🔴 MrBeast started streaming</div>
+  <div class="mini-player glass" id="miniPlayer"><div class="mini-head"><b id="miniTitle">Live preview</b><button class="close" id="closeMini">×</button></div><video id="miniVideo" muted loop playsinline controls></video></div>
+  <div class="modal" id="profileModal"><div class="profile glass"><button class="close" id="closeModal">×</button><div id="profileContent"></div></div></div>
+
+  <script>
+    const platforms = ['All','YouTube','Twitch','Kick','Gaming','IRL','Music'];
+    const videos = [
+      'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+      'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm'
+    ];
+    const creators = [
+      ['MrBeast','YouTube','Gaming',742000,'$1,000,000 Intergalactic Live Challenge'],['Speed','YouTube','IRL',503400,'Speed IRL world tour chaos cam'],['KaiCenat','Twitch','IRL',221900,'AMP neon mansion all-night stream'],['xQc','Kick','Gaming',187200,'Variety roulette and cyber reactions'],['Ninja','Twitch','Gaming',98400,'Fortnite zero build galaxy cup'],['Pokimane','Twitch','IRL',73100,'Cozy chat and creator games'],['Valkyrae','YouTube','Gaming',85600,'Horror squad with surprise guests'],['Ludwig','YouTube','Gaming',118000,'Streamer games live finals'],['IShowTech','Kick','Gaming',42300,'Building a mega PC live'],['NeonNia','Twitch','Music',61200,'AI VTuber synthwave concert'],['DrDisrespect','YouTube','Gaming',130500,'Arena domination ranked grind'],['Amouranth','Kick','IRL',52200,'Late night variety lounge'],['Shroud','Twitch','Gaming',164000,'FPS masterclass live'],['Tarik','Twitch','Gaming',122700,'Valorant watch party finals'],['HasanAbi','Twitch','IRL',90700,'News reactor prime time'],['MarkRober','YouTube','Gaming',66900,'Robot obstacle battle live'],['Marques','YouTube','IRL',48300,'Future tech live desk'],['LoFiLuna','YouTube','Music',37200,'24/7 cosmic study radio'],['KickQueen','Kick','IRL',31900,'Downtown scavenger hunt'],['PixelPilot','Twitch','Gaming',27400,'Indie game speedrun marathon']
+    ].map((c,i)=>({id:i,name:c[0],platform:c[1],category:c[2],viewers:c[3],title:c[4],duration:`${1+i%7}h ${String(8+i*3).slice(-2)}m`,rank:i+1,verified:i%3!==1,avatar:`https://i.pravatar.cc/100?img=${(i%60)+1}`,thumb:`https://picsum.photos/seed/stream-${i}/900/520`,video:videos[i%2],followers:(c[3]*12+i*999).toLocaleString(),link:c[1]==='YouTube'?'https://www.youtube.com/live':c[1]==='Twitch'?'https://www.twitch.tv/directory':'https://kick.com/',desc:`${c[0]} is broadcasting a high-energy ${c[2].toLowerCase()} experience with a rapidly moving live chat.`}));
+
+    let activeFilter = 'All', search = '', hoverTimer, lastPreview = creators[0];
+    const $ = s => document.querySelector(s);
+    const fmt = n => n >= 1000 ? (n/1000).toFixed(n>99999?0:1)+'K' : n;
+    const filters = $('#filters');
+    platforms.forEach(p => { const b=document.createElement('button'); b.className='chip'+(p==='All'?' active':''); b.textContent=p; b.onclick=()=>{activeFilter=p; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render();}; filters.appendChild(b); });
+
+    function cardHTML(c){ return `<article class="card glass" data-id="${c.id}"><div class="thumb-wrap"><img class="thumb" src="${c.thumb}" alt="${c.title}"><video class="preview-video" muted loop playsinline src="${c.video}"></video><span class="pill trend">#${c.rank} TRENDING</span><span class="pill platform">${c.platform}</span><div class="overlay-controls"><span class="pill">▶ muted preview</span><span class="pill liveViewers">${fmt(c.viewers)} watching</span></div></div><div class="card-body"><div class="creator-row"><img class="avatar" data-profile="${c.id}" src="${c.avatar}" alt="${c.name}"><div><b>${c.name} ${c.verified?'<span class="verify">◆</span>':''}</b><div class="mini">${c.category} • ${c.duration}</div></div><span class="rank">#${c.rank}</span></div><h4>${c.title}</h4><div class="meta"><span>${fmt(c.viewers)} viewers</span><span>•</span><span>${c.platform}</span><span>•</span><span>${c.category}</span></div><div class="chat-preview"><div class="chat-line">NovaFan: this preview is insane 🔥</div><div class="chat-line">PixelBot: viewer count is exploding</div><div class="chat-line">Luna: clip this moment!</div></div></div></article>`; }
+    function filtered(){ return creators.filter(c => (activeFilter==='All'||c.platform===activeFilter||c.category===activeFilter) && (c.name+c.title+c.category+c.platform).toLowerCase().includes(search)); }
+    function render(){ const list=filtered(); $('#grid').innerHTML=list.map(cardHTML).join(''); $('#recommended').innerHTML=creators.slice(8,14).map(cardHTML).join(''); $('#resultCount').textContent=`${list.length} streams found`; bindCards(); }
+    function side(id, list){ $(id).innerHTML=list.map(c=>`<div class="side-item"><img class="avatar" data-profile="${c.id}" src="${c.avatar}"><div><b>${c.name}</b><div class="mini">${c.platform} • ${fmt(c.viewers)}</div></div><span class="rank">#${c.rank}</span></div>`).join(''); }
+    function bindCards(){ document.querySelectorAll('.card').forEach(card=>{ const c=creators[card.dataset.id], v=card.querySelector('video'); card.onmouseenter=()=>hoverTimer=setTimeout(()=>startPreview(card,c,v),1000); card.onmouseleave=()=>{clearTimeout(hoverTimer); stopPreview(card,v,c);}; card.onclick=e=>{ if(!e.target.classList.contains('avatar')) window.open(c.link,'_blank','noreferrer'); }; let press; card.ontouchstart=()=>press=setTimeout(()=>openMini(c),650); card.ontouchend=()=>clearTimeout(press); }); document.querySelectorAll('.avatar').forEach(a=>a.onclick=e=>{e.stopPropagation(); showProfile(creators[a.dataset.profile]);}); }
+    function startPreview(card,c,v){ lastPreview=c; card.classList.add('previewing'); v.play(); card.querySelector('.liveViewers').textContent=fmt(c.viewers+Math.floor(Math.random()*9000))+' watching'; }
+    function stopPreview(card,v,c){ if(card.classList.contains('previewing')) openMini(c); card.classList.remove('previewing'); v.pause(); }
+    function openMini(c){ $('#miniTitle').textContent=c.title; $('#miniVideo').src=c.video; $('#miniVideo').play(); $('#miniPlayer').classList.add('show'); }
+    function showProfile(c){ $('#profileContent').innerHTML=`<img class="avatar" style="width:86px;height:86px" src="${c.avatar}"><h2>${c.name} ${c.verified?'◆':''}</h2><p>${c.desc}</p><p><b>${c.followers}</b> followers • ${c.platform}</p><p><a class="btn" href="${c.link}" target="_blank">Open channel</a></p><div class="meta"><span>@${c.name}</span><span>•</span><span>stream.social/${c.name.toLowerCase()}</span></div>`; $('#profileModal').classList.add('show'); }
+    $('#search').oninput=e=>{search=e.target.value.toLowerCase(); render();}; $('#closeModal').onclick=()=>$('#profileModal').classList.remove('show'); $('#closeMini').onclick=()=>$('#miniPlayer').classList.remove('show');
+    function boot(){ for(let i=0;i<85;i++){ const p=document.createElement('i'); p.className='particle'; p.style.setProperty('--x',Math.random()*100+'vw'); p.style.setProperty('--dx',(Math.random()*120-60)+'px'); p.style.setProperty('--duration',(8+Math.random()*14)+'s'); p.style.left='0'; p.style.animationDelay=(-Math.random()*14)+'s'; $('#particles').appendChild(p); } side('#trendingCreators', creators.slice(0,5)); side('#topLive', [...creators].sort((a,b)=>b.viewers-a.viewers).slice(0,5)); side('#sideRecommended', creators.slice(5,10)); side('#recentlyLive', creators.slice(15,20)); $('#statChannels').textContent=creators.length.toLocaleString(); $('#statViewers').textContent=creators.reduce((s,c)=>s+c.viewers,0).toLocaleString(); setTimeout(()=>{$('#skeletons').style.display='none'; render();},900); setTimeout(()=>$('#toast').classList.add('show'),1400); setTimeout(()=>$('#toast').classList.remove('show'),6200); setInterval(()=>document.querySelectorAll('.liveViewers').forEach(x=>x.textContent=fmt(20000+Math.random()*700000)+' watching'),2500); }
+    boot();
+  </script>
+</body>
+</html>
