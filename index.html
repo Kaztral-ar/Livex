@@ -256,12 +256,15 @@
       rank: i + 1,
       verified: false,
       avatar: `https://api.dicebear.com/9.x/thumbs/svg?seed=${name}`,
-      thumb: `https://picsum.photos/seed/kick-${name}/900/520`,
+      dp: `https://api.dicebear.com/9.x/thumbs/svg?seed=${name}`,
+      thumb: '',
       video: videos[i % videos.length],
       followers: 'Kick',
       link: `https://kick.com/${name}`,
       desc: `${name} is one of the requested Kick channels.`,
-      isLive: false
+      isLive: false,
+      liveTitle: '',
+      viewers: 0
     }));
 
     let activeFilter = 'All', search = '', hoverTimer, lastPreview = creators[0];
@@ -269,6 +272,8 @@
     const filters = $('#filters');
     platforms.forEach(p => { const b=document.createElement('button'); b.className='chip'+(p==='All'?' active':''); b.textContent=p; b.onclick=()=>{activeFilter=p; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render();}; filters.appendChild(b); });
 
+    function channelImage(c){ return c.dp || c.avatar; }
+    function liveImage(c){ return c.isLive && c.thumb ? c.thumb : channelImage(c); }
     function cardHTML(c){
       const status = c.isLive
         ? '<span class="pill trend status-live">LIVE</span>'
@@ -276,18 +281,46 @@
       const preview = c.isLive
         ? `<video class="preview-video" muted loop playsinline src="${c.video}"></video><div class="overlay-controls"><span class="pill">▶ live preview</span><span class="pill actionLabel">Watch live</span></div>`
         : '';
-      return `<article class="card glass" data-id="${c.id}"><div class="thumb-wrap"><img class="thumb" src="${c.thumb}" alt="${c.title}">${preview}${status}<span class="pill platform">${c.platform}</span></div><div class="card-body"><div class="creator-row"><img class="avatar" data-profile="${c.id}" src="${c.avatar}" alt="${c.name}"><div><b>${c.name}</b><div class="mini">${c.category} • ${c.isLive ? 'Live now' : 'Offline'}</div></div><span class="rank">#${c.rank}</span></div><h4>${c.title}</h4><div class="meta"><span>${c.platform}</span><span>•</span><span>${c.category}</span><span>•</span><span><a href="${c.link}" target="_blank" rel="noreferrer">${c.link}</a></span></div></div></article>`;
+      const cardTitle = c.isLive && c.liveTitle ? c.liveTitle : c.title;
+      const liveMeta = c.isLive ? `Live now${c.viewers ? ` • ${c.viewers.toLocaleString()} viewers` : ''}` : 'Offline';
+      return `<article class="card glass" data-id="${c.id}"><div class="thumb-wrap"><img class="thumb" src="${liveImage(c)}" alt="${cardTitle}">${preview}${status}<span class="pill platform">${c.platform}</span></div><div class="card-body"><div class="creator-row"><img class="avatar" data-profile="${c.id}" src="${channelImage(c)}" alt="${c.name}"><div><b>${c.name}</b><div class="mini">${c.category} • ${liveMeta}</div></div><span class="rank">#${c.rank}</span></div><h4>${cardTitle}</h4><div class="meta"><span>${c.platform}</span><span>•</span><span>${c.category}</span><span>•</span><span><a href="${c.link}" target="_blank" rel="noreferrer">${c.link}</a></span></div></div></article>`;
     }
     function filtered(){ return creators.filter(c => (activeFilter==='All'||c.platform===activeFilter||c.category===activeFilter) && (c.name+c.title+c.category+c.platform).toLowerCase().includes(search)); }
     function render(){ const list=filtered(); $('#grid').innerHTML=list.map(cardHTML).join(''); $('#resultCount').textContent=`${list.length} channels found`; $('#statLive').textContent=creators.filter(c=>c.isLive).length.toLocaleString(); bindCards(); }
-    function side(id, list){ $(id).innerHTML=list.map(c=>`<div class="side-item"><img class="avatar" data-profile="${c.id}" src="${c.avatar}"><div><b>${c.name}</b><div class="mini">${c.platform} channel</div></div><span class="rank">#${c.rank}</span></div>`).join(''); }
+    function side(id, list){ $(id).innerHTML=list.map(c=>`<div class="side-item"><img class="avatar" data-profile="${c.id}" src="${channelImage(c)}"><div><b>${c.name}</b><div class="mini">${c.isLive ? 'LIVE now' : c.platform + ' channel'}</div></div><span class="rank">#${c.rank}</span></div>`).join(''); }
     function bindCards(){ document.querySelectorAll('.card').forEach(card=>{ const c=creators[card.dataset.id], v=card.querySelector('video'); card.onmouseenter=()=>{ if(c.isLive && v) hoverTimer=setTimeout(()=>startPreview(card,c,v),1000); }; card.onmouseleave=()=>{clearTimeout(hoverTimer); if(c.isLive && v) stopPreview(card,v,c);}; card.onclick=e=>{ if(!e.target.classList.contains('avatar')) window.open(c.link,'_blank','noreferrer'); }; let press; card.ontouchstart=()=>{ if(c.isLive) press=setTimeout(()=>openMini(c),650); }; card.ontouchend=()=>clearTimeout(press); }); document.querySelectorAll('.avatar').forEach(a=>a.onclick=e=>{e.stopPropagation(); showProfile(creators[a.dataset.profile]);}); }
     function startPreview(card,c,v){ lastPreview=c; card.classList.add('previewing'); v.play(); card.querySelector('.actionLabel').textContent='Watch live'; }
     function stopPreview(card,v,c){ if(card.classList.contains('previewing')) openMini(c); card.classList.remove('previewing'); v.pause(); }
     function openMini(c){ if(!c.isLive) return; $('#miniTitle').textContent=c.title; $('#miniVideo').src=c.video; $('#miniVideo').play(); $('#miniPlayer').classList.add('show'); }
-    function showProfile(c){ $('#profileContent').innerHTML=`<img class="avatar" style="width:86px;height:86px" src="${c.avatar}"><h2>${c.name}</h2><p>${c.desc}</p><p><b>${c.platform}</b> channel • ${c.isLive ? 'Live now' : 'Offline'}</p><p><a class="btn" href="${c.link}" target="_blank">Open channel</a></p><div class="meta"><span>@${c.name}</span><span>•</span><span>${c.link}</span></div>`; $('#profileModal').classList.add('show'); }
+    function showProfile(c){ $('#profileContent').innerHTML=`<img class="avatar" style="width:86px;height:86px" src="${channelImage(c)}"><h2>${c.name}</h2><p>${c.desc}</p><p><b>${c.platform}</b> channel • ${c.isLive ? 'Live now' : 'Offline'}</p><p><a class="btn" href="${c.link}" target="_blank">Open channel</a></p><div class="meta"><span>@${c.name}</span><span>•</span><span>${c.link}</span></div>`; $('#profileModal').classList.add('show'); }
+    function normalizeKickChannel(payload, creator){
+      const livestream = payload?.livestream || payload?.live_stream || payload?.stream || null;
+      const user = payload?.user || payload?.owner || payload || {};
+      const dp = user.profile_pic || user.profile_picture || user.avatar || payload?.profile_pic || payload?.profile_picture || payload?.avatar;
+      const thumbnail = livestream?.thumbnail?.url || livestream?.thumbnail || livestream?.session_thumbnail || livestream?.thumbnail_url || livestream?.preview?.src || '';
+      creator.dp = dp || creator.dp || creator.avatar;
+      creator.avatar = creator.dp;
+      creator.isLive = Boolean(livestream && (livestream.is_live !== false));
+      creator.thumb = creator.isLive ? thumbnail : '';
+      creator.liveTitle = creator.isLive ? (livestream.session_title || livestream.title || creator.title) : '';
+      creator.viewers = Number(livestream?.viewer_count || livestream?.viewers || livestream?.viewers_count || 0);
+      creator.desc = payload?.bio || payload?.description || creator.desc;
+    }
+    async function refreshKickStatus(){
+      await Promise.allSettled(creators.map(async c => {
+        const res = await fetch(`https://kick.com/api/v2/channels/${encodeURIComponent(c.name)}`, { cache: 'no-store' });
+        if(!res.ok) throw new Error(`Kick status failed for ${c.name}`);
+        normalizeKickChannel(await res.json(), c);
+      }));
+      side('#kickChannelList', creators);
+      render();
+      const liveCount = creators.filter(c=>c.isLive).length;
+      $('#toast').textContent = liveCount ? `${liveCount} Kick channel${liveCount === 1 ? '' : 's'} live now` : 'Kick live status checked';
+      $('#toast').classList.add('show');
+      setTimeout(()=>$('#toast').classList.remove('show'),4200);
+    }
     $('#search').oninput=e=>{search=e.target.value.toLowerCase(); render();}; $('#closeModal').onclick=()=>$('#profileModal').classList.remove('show'); $('#closeMini').onclick=()=>$('#miniPlayer').classList.remove('show');
-    function boot(){ for(let i=0;i<85;i++){ const p=document.createElement('i'); p.className='particle'; p.style.setProperty('--x',Math.random()*100+'vw'); p.style.setProperty('--dx',(Math.random()*120-60)+'px'); p.style.setProperty('--duration',(8+Math.random()*14)+'s'); p.style.left='0'; p.style.animationDelay=(-Math.random()*14)+'s'; $('#particles').appendChild(p); } side('#kickChannelList', creators); $('#statChannels').textContent=creators.length.toLocaleString(); $('#statLive').textContent=creators.filter(c=>c.isLive).length.toLocaleString(); setTimeout(()=>{$('#skeletons').style.display='none'; render();},900); setTimeout(()=>$('#toast').classList.add('show'),1400); setTimeout(()=>$('#toast').classList.remove('show'),6200); }
+    function boot(){ for(let i=0;i<85;i++){ const p=document.createElement('i'); p.className='particle'; p.style.setProperty('--x',Math.random()*100+'vw'); p.style.setProperty('--dx',(Math.random()*120-60)+'px'); p.style.setProperty('--duration',(8+Math.random()*14)+'s'); p.style.left='0'; p.style.animationDelay=(-Math.random()*14)+'s'; $('#particles').appendChild(p); } side('#kickChannelList', creators); $('#statChannels').textContent=creators.length.toLocaleString(); $('#statLive').textContent=creators.filter(c=>c.isLive).length.toLocaleString(); setTimeout(()=>{$('#skeletons').style.display='none'; render(); refreshKickStatus();},900); }
     boot();
   </script>
 </body>
