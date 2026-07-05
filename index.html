@@ -152,6 +152,7 @@
     .overlay-controls { position:absolute; inset:auto 12px 12px 12px; display:flex; justify-content:space-between; opacity:0; transition:.3s; }
     .card.previewing .overlay-controls { opacity:1; }
     .pill { padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.14); font-weight:800; font-size:.8rem; }
+    .status-live { color: #050611; background: var(--green); box-shadow: 0 0 18px rgba(57,255,138,.45); }
     .status-offline { color: var(--text); background: rgba(154,167,199,.22); }
     .platform { position:absolute; top:12px; right:12px; }
     .trend { position:absolute; top:12px; left:12px; color:#050611; background:var(--green); }
@@ -214,11 +215,11 @@
         <section class="stats">
           <div class="stat glass"><span>Total Channels</span><b id="statChannels">0</b></div>
           <div class="stat glass"><span>Platform</span><b>Kick</b></div>
-          <div class="stat glass"><span>Directory Status</span><b>Curated</b></div>
+          <div class="stat glass"><span>Live Now</span><b id="statLive">0</b></div>
         </section>
 
         <div class="skeletons" id="skeletons"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-        <div class="section-title"><div><h2>Kick Channels</h2><p class="mini">Only the requested Kick channels are listed.</p></div><span class="pill" id="resultCount"></span></div>
+        <div class="section-title"><div><h2>Kick Channels</h2><p class="mini">Live indicators and previews appear only for channels marked live.</p></div><span class="pill" id="resultCount"></span></div>
         <section class="grid" id="grid"></section>
       </section>
     </main>
@@ -259,7 +260,8 @@
       video: videos[i % videos.length],
       followers: 'Kick',
       link: `https://kick.com/${name}`,
-      desc: `${name} is one of the requested Kick channels.`
+      desc: `${name} is one of the requested Kick channels.`,
+      isLive: false
     }));
 
     let activeFilter = 'All', search = '', hoverTimer, lastPreview = creators[0];
@@ -267,17 +269,25 @@
     const filters = $('#filters');
     platforms.forEach(p => { const b=document.createElement('button'); b.className='chip'+(p==='All'?' active':''); b.textContent=p; b.onclick=()=>{activeFilter=p; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render();}; filters.appendChild(b); });
 
-    function cardHTML(c){ return `<article class="card glass" data-id="${c.id}"><div class="thumb-wrap"><img class="thumb" src="${c.thumb}" alt="${c.title}"><video class="preview-video" muted loop playsinline src="${c.video}"></video><span class="pill trend status-offline">Kick Channel</span><span class="pill platform">${c.platform}</span><div class="overlay-controls"><span class="pill">▶ muted preview</span><span class="pill actionLabel">Open on Kick</span></div></div><div class="card-body"><div class="creator-row"><img class="avatar" data-profile="${c.id}" src="${c.avatar}" alt="${c.name}"><div><b>${c.name}</b><div class="mini">${c.category} • ${c.duration}</div></div><span class="rank">#${c.rank}</span></div><h4>${c.title}</h4><div class="meta"><span>${c.platform}</span><span>•</span><span>${c.category}</span><span>•</span><span><a href="${c.link}" target="_blank" rel="noreferrer">${c.link}</a></span></div></div></article>`; }
+    function cardHTML(c){
+      const status = c.isLive
+        ? '<span class="pill trend status-live">LIVE</span>'
+        : '<span class="pill trend status-offline">Offline</span>';
+      const preview = c.isLive
+        ? `<video class="preview-video" muted loop playsinline src="${c.video}"></video><div class="overlay-controls"><span class="pill">▶ live preview</span><span class="pill actionLabel">Watch live</span></div>`
+        : '';
+      return `<article class="card glass" data-id="${c.id}"><div class="thumb-wrap"><img class="thumb" src="${c.thumb}" alt="${c.title}">${preview}${status}<span class="pill platform">${c.platform}</span></div><div class="card-body"><div class="creator-row"><img class="avatar" data-profile="${c.id}" src="${c.avatar}" alt="${c.name}"><div><b>${c.name}</b><div class="mini">${c.category} • ${c.isLive ? 'Live now' : 'Offline'}</div></div><span class="rank">#${c.rank}</span></div><h4>${c.title}</h4><div class="meta"><span>${c.platform}</span><span>•</span><span>${c.category}</span><span>•</span><span><a href="${c.link}" target="_blank" rel="noreferrer">${c.link}</a></span></div></div></article>`;
+    }
     function filtered(){ return creators.filter(c => (activeFilter==='All'||c.platform===activeFilter||c.category===activeFilter) && (c.name+c.title+c.category+c.platform).toLowerCase().includes(search)); }
-    function render(){ const list=filtered(); $('#grid').innerHTML=list.map(cardHTML).join(''); $('#resultCount').textContent=`${list.length} channels found`; bindCards(); }
+    function render(){ const list=filtered(); $('#grid').innerHTML=list.map(cardHTML).join(''); $('#resultCount').textContent=`${list.length} channels found`; $('#statLive').textContent=creators.filter(c=>c.isLive).length.toLocaleString(); bindCards(); }
     function side(id, list){ $(id).innerHTML=list.map(c=>`<div class="side-item"><img class="avatar" data-profile="${c.id}" src="${c.avatar}"><div><b>${c.name}</b><div class="mini">${c.platform} channel</div></div><span class="rank">#${c.rank}</span></div>`).join(''); }
-    function bindCards(){ document.querySelectorAll('.card').forEach(card=>{ const c=creators[card.dataset.id], v=card.querySelector('video'); card.onmouseenter=()=>hoverTimer=setTimeout(()=>startPreview(card,c,v),1000); card.onmouseleave=()=>{clearTimeout(hoverTimer); stopPreview(card,v,c);}; card.onclick=e=>{ if(!e.target.classList.contains('avatar')) window.open(c.link,'_blank','noreferrer'); }; let press; card.ontouchstart=()=>press=setTimeout(()=>openMini(c),650); card.ontouchend=()=>clearTimeout(press); }); document.querySelectorAll('.avatar').forEach(a=>a.onclick=e=>{e.stopPropagation(); showProfile(creators[a.dataset.profile]);}); }
-    function startPreview(card,c,v){ lastPreview=c; card.classList.add('previewing'); v.play(); card.querySelector('.actionLabel').textContent='Open on Kick'; }
+    function bindCards(){ document.querySelectorAll('.card').forEach(card=>{ const c=creators[card.dataset.id], v=card.querySelector('video'); card.onmouseenter=()=>{ if(c.isLive && v) hoverTimer=setTimeout(()=>startPreview(card,c,v),1000); }; card.onmouseleave=()=>{clearTimeout(hoverTimer); if(c.isLive && v) stopPreview(card,v,c);}; card.onclick=e=>{ if(!e.target.classList.contains('avatar')) window.open(c.link,'_blank','noreferrer'); }; let press; card.ontouchstart=()=>{ if(c.isLive) press=setTimeout(()=>openMini(c),650); }; card.ontouchend=()=>clearTimeout(press); }); document.querySelectorAll('.avatar').forEach(a=>a.onclick=e=>{e.stopPropagation(); showProfile(creators[a.dataset.profile]);}); }
+    function startPreview(card,c,v){ lastPreview=c; card.classList.add('previewing'); v.play(); card.querySelector('.actionLabel').textContent='Watch live'; }
     function stopPreview(card,v,c){ if(card.classList.contains('previewing')) openMini(c); card.classList.remove('previewing'); v.pause(); }
-    function openMini(c){ $('#miniTitle').textContent=c.title; $('#miniVideo').src=c.video; $('#miniVideo').play(); $('#miniPlayer').classList.add('show'); }
-    function showProfile(c){ $('#profileContent').innerHTML=`<img class="avatar" style="width:86px;height:86px" src="${c.avatar}"><h2>${c.name}</h2><p>${c.desc}</p><p><b>${c.platform}</b> channel</p><p><a class="btn" href="${c.link}" target="_blank">Open channel</a></p><div class="meta"><span>@${c.name}</span><span>•</span><span>${c.link}</span></div>`; $('#profileModal').classList.add('show'); }
+    function openMini(c){ if(!c.isLive) return; $('#miniTitle').textContent=c.title; $('#miniVideo').src=c.video; $('#miniVideo').play(); $('#miniPlayer').classList.add('show'); }
+    function showProfile(c){ $('#profileContent').innerHTML=`<img class="avatar" style="width:86px;height:86px" src="${c.avatar}"><h2>${c.name}</h2><p>${c.desc}</p><p><b>${c.platform}</b> channel • ${c.isLive ? 'Live now' : 'Offline'}</p><p><a class="btn" href="${c.link}" target="_blank">Open channel</a></p><div class="meta"><span>@${c.name}</span><span>•</span><span>${c.link}</span></div>`; $('#profileModal').classList.add('show'); }
     $('#search').oninput=e=>{search=e.target.value.toLowerCase(); render();}; $('#closeModal').onclick=()=>$('#profileModal').classList.remove('show'); $('#closeMini').onclick=()=>$('#miniPlayer').classList.remove('show');
-    function boot(){ for(let i=0;i<85;i++){ const p=document.createElement('i'); p.className='particle'; p.style.setProperty('--x',Math.random()*100+'vw'); p.style.setProperty('--dx',(Math.random()*120-60)+'px'); p.style.setProperty('--duration',(8+Math.random()*14)+'s'); p.style.left='0'; p.style.animationDelay=(-Math.random()*14)+'s'; $('#particles').appendChild(p); } side('#kickChannelList', creators); $('#statChannels').textContent=creators.length.toLocaleString(); setTimeout(()=>{$('#skeletons').style.display='none'; render();},900); setTimeout(()=>$('#toast').classList.add('show'),1400); setTimeout(()=>$('#toast').classList.remove('show'),6200); }
+    function boot(){ for(let i=0;i<85;i++){ const p=document.createElement('i'); p.className='particle'; p.style.setProperty('--x',Math.random()*100+'vw'); p.style.setProperty('--dx',(Math.random()*120-60)+'px'); p.style.setProperty('--duration',(8+Math.random()*14)+'s'); p.style.left='0'; p.style.animationDelay=(-Math.random()*14)+'s'; $('#particles').appendChild(p); } side('#kickChannelList', creators); $('#statChannels').textContent=creators.length.toLocaleString(); $('#statLive').textContent=creators.filter(c=>c.isLive).length.toLocaleString(); setTimeout(()=>{$('#skeletons').style.display='none'; render();},900); setTimeout(()=>$('#toast').classList.add('show'),1400); setTimeout(()=>$('#toast').classList.remove('show'),6200); }
     boot();
   </script>
 </body>
