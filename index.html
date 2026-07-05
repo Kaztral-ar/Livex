@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StreamUniverse | Live Discovery</title>
+  <title>StreamUniverse | Kick Channel Directory</title>
   <style>
     :root {
       --bg: #050611;
@@ -128,7 +128,7 @@
     .hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .48; filter: saturate(1.35) contrast(1.1); z-index: -2; }
     .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 10%, rgba(5,6,17,.75) 76%), radial-gradient(circle at 70% 20%, rgba(32,247,255,.28), transparent 30%); z-index: -1; }
     .hero-content { max-width: 780px; animation: floatIn .9s ease both .15s; }
-    .live-badge { display: inline-flex; gap: 8px; align-items: center; padding: 8px 13px; border-radius: 999px; background: var(--red); font-weight: 950; animation: pulseGlow 1.6s ease-in-out infinite; }
+    .directory-badge { display: inline-flex; gap: 8px; align-items: center; padding: 8px 13px; border-radius: 999px; background: var(--red); font-weight: 950; animation: pulseGlow 1.6s ease-in-out infinite; }
     .hero h1 { font-size: clamp(2.2rem, 6vw, 5.8rem); line-height: .9; margin: 18px 0 14px; letter-spacing: -.08em; }
     .hero-actions, .card-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
     .btn { border: 0; border-radius: 999px; padding: 13px 20px; color: white; font-weight: 900; cursor: pointer; background: linear-gradient(135deg, var(--pink), var(--violet), var(--cyan)); background-size: 220% 220%; animation: gradientMove 4s ease infinite; box-shadow: 0 0 24px rgba(255,43,214,.35); text-decoration: none; display: inline-flex; align-items:center; gap:8px; }
@@ -152,7 +152,6 @@
     .overlay-controls { position:absolute; inset:auto 12px 12px 12px; display:flex; justify-content:space-between; opacity:0; transition:.3s; }
     .card.previewing .overlay-controls { opacity:1; }
     .pill { padding: 7px 10px; border-radius: 999px; background: rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.14); font-weight:800; font-size:.8rem; }
-    .status-live { color: #04110a; background: var(--green); box-shadow: 0 0 18px rgba(57,255,138,.35); }
     .status-offline { color: var(--text); background: rgba(154,167,199,.22); }
     .platform { position:absolute; top:12px; right:12px; }
     .trend { position:absolute; top:12px; left:12px; color:#050611; background:var(--green); }
@@ -194,82 +193,91 @@
       <nav class="filters" id="filters"></nav>
     </header>
 
-    <div class="ticker"><div class="ticker-track">🔴 MrBeast just went LIVE • Speed hit 500K viewers • New tournament started • VTuber concert broke chat • Kick creator rising fast • Twitch drops are active • </div></div>
+    <div class="ticker"><div class="ticker-track">Kick channel directory • EagleGaming • tvaitachi • cupcakegamingog • savagetva • zekken-007 • mobytva • destrotva • rhaegargamingtva • snipetva • </div></div>
 
     <main class="layout">
       <aside class="sidebar">
-        <section class="panel glass"><h3>Trending Creators</h3><div class="side-list" id="trendingCreators"></div></section>
-        <section class="panel glass"><h3>Top Live Now</h3><div class="side-list" id="topLive"></div></section>
-        <section class="panel glass"><h3>Recommended Streams</h3><div class="side-list" id="sideRecommended"></div></section>
-        <section class="panel glass"><h3>Recently Live</h3><div class="side-list" id="recentlyLive"></div></section>
-        <section class="panel glass"><h3>Leaderboard</h3><div class="side-list"><div class="side-item"><b>#1</b><div>Most watched creator</div><span>MrBeast</span></div><div class="side-item"><b>#2</b><div>Fastest growing stream</div><span>Speed</span></div><div class="side-item"><b>#3</b><div>New viral stream</div><span>NeonNia</span></div></div></section>
+        <section class="panel glass"><h3>Kick Channels</h3><div class="side-list" id="kickChannelList"></div></section>
       </aside>
 
       <section>
         <section class="hero glass">
           <video class="hero-bg" autoplay muted loop playsinline src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"></video>
           <div class="hero-content">
-            <span class="live-badge">● LIVE FEATURED</span>
-            <h1>MrBeast's $1,000,000 Intergalactic Live Challenge</h1>
-            <div class="creator-row" style="max-width:430px"><img class="avatar" data-profile="0" src="https://i.pravatar.cc/100?img=12" alt="MrBeast avatar"><div><b>MrBeast</b><div class="mini">YouTube • 742K watching • verified</div></div><span class="verify">◆</span></div>
-            <div class="hero-actions"><a class="btn" href="https://www.youtube.com/live" target="_blank" rel="noreferrer">Watch Original</a><button class="btn secondary">＋ Follow</button></div>
+            <span class="directory-badge">KICK DIRECTORY</span>
+            <h1>Official Kick Channels</h1>
+            <div class="creator-row" style="max-width:430px"><img class="avatar" data-profile="0" src="https://api.dicebear.com/9.x/thumbs/svg?seed=eaglegaming" alt="eaglegaming avatar"><div><b>eaglegaming</b><div class="mini">Kick channel</div></div><span class="verify">◆</span></div>
+            <div class="hero-actions"><a class="btn" href="https://kick.com/eaglegaming" target="_blank" rel="noreferrer">Open Channel</a></div>
           </div>
         </section>
 
         <section class="stats">
           <div class="stat glass"><span>Total Channels</span><b id="statChannels">0</b></div>
-          <div class="stat glass"><span>Total Viewers Online</span><b id="statViewers">0</b></div>
-          <div class="stat glass"><span>Platforms Connected</span><b>12</b></div>
+          <div class="stat glass"><span>Platform</span><b>Kick</b></div>
+          <div class="stat glass"><span>Directory Status</span><b>Curated</b></div>
         </section>
 
         <div class="skeletons" id="skeletons"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-        <div class="section-title"><div><h2>Stream Channels</h2><p class="mini">Hover for 1 second on desktop. Kick channels show Online when live and Offline when not live.</p></div><span class="pill" id="resultCount"></span></div>
+        <div class="section-title"><div><h2>Kick Channels</h2><p class="mini">Only the requested Kick channels are listed.</p></div><span class="pill" id="resultCount"></span></div>
         <section class="grid" id="grid"></section>
-
-        <section class="recommend glass"><div class="section-title"><div><h2>✨ Suggested Kick Channels</h2><p class="mini">Added Kick channels with online/offline stream status.</p></div></div><section class="grid" id="recommended"></section></section>
       </section>
     </main>
   </div>
 
-  <div class="toast glass" id="toast">🔴 MrBeast started streaming</div>
-  <div class="mini-player glass" id="miniPlayer"><div class="mini-head"><b id="miniTitle">Live preview</b><button class="close" id="closeMini">×</button></div><video id="miniVideo" muted loop playsinline controls></video></div>
+  <div class="toast glass" id="toast">Kick channel list updated</div>
+  <div class="mini-player glass" id="miniPlayer"><div class="mini-head"><b id="miniTitle">Channel preview</b><button class="close" id="closeMini">×</button></div><video id="miniVideo" muted loop playsinline controls></video></div>
   <div class="modal" id="profileModal"><div class="profile glass"><button class="close" id="closeModal">×</button><div id="profileContent"></div></div></div>
 
   <script>
-    const platforms = ['All','YouTube','Twitch','Kick','Gaming','IRL','Music'];
+    const platforms = ['All','Kick','Gaming'];
     const videos = [
       'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
       'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm'
     ];
-    const baseCreators = [
-      ['MrBeast','YouTube','Gaming',742000,'$1,000,000 Intergalactic Live Challenge'],['Speed','YouTube','IRL',503400,'Speed IRL world tour chaos cam'],['KaiCenat','Twitch','IRL',221900,'AMP neon mansion all-night stream'],['xQc','Kick','Gaming',187200,'Variety roulette and cyber reactions'],['Ninja','Twitch','Gaming',98400,'Fortnite zero build galaxy cup'],['Pokimane','Twitch','IRL',73100,'Cozy chat and creator games'],['Valkyrae','YouTube','Gaming',85600,'Horror squad with surprise guests'],['Ludwig','YouTube','Gaming',118000,'Streamer games live finals'],['IShowTech','Kick','Gaming',42300,'Building a mega PC live'],['NeonNia','Twitch','Music',61200,'AI VTuber synthwave concert'],['DrDisrespect','YouTube','Gaming',130500,'Arena domination ranked grind'],['Amouranth','Kick','IRL',52200,'Late night variety lounge'],['Shroud','Twitch','Gaming',164000,'FPS masterclass live'],['Tarik','Twitch','Gaming',122700,'Valorant watch party finals'],['HasanAbi','Twitch','IRL',90700,'News reactor prime time'],['MarkRober','YouTube','Gaming',66900,'Robot obstacle battle live'],['Marques','YouTube','IRL',48300,'Future tech live desk'],['LoFiLuna','YouTube','Music',37200,'24/7 cosmic study radio'],['KickQueen','Kick','IRL',31900,'Downtown scavenger hunt'],['PixelPilot','Twitch','Gaming',27400,'Indie game speedrun marathon']
+    const channelNames = [
+      'eaglegaming',
+      'tvaitachi',
+      'cupcakegamingog',
+      'savagetva',
+      'zekken-007',
+      'mobytva',
+      'destrotva',
+      'rhaegargamingtva',
+      'snipetva'
     ];
-    const kickChannels = [
-      ['mobytva', true, 1840], ['destrotva', false, 0], ['rhaegargamingtva', true, 960], ['snipetva', false, 0], ['eaglegaming', true, 2210], ['tvaitachi', false, 0], ['cupcakegamingog', true, 740], ['savagetva', false, 0], ['zekken-007', true, 1310]
-    ];
-    const creators = [
-      ...baseCreators.map((c,i)=>({id:i,name:c[0],platform:c[1],category:c[2],viewers:c[3],title:c[4],duration:`${1+i%7}h ${String(8+i*3).slice(-2)}m`,rank:i+1,verified:i%3!==1,avatar:`https://i.pravatar.cc/100?img=${(i%60)+1}`,thumb:`https://picsum.photos/seed/stream-${i}/900/520`,video:videos[i%2],followers:(c[3]*12+i*999).toLocaleString(),link:c[1]==='YouTube'?'https://www.youtube.com/live':c[1]==='Twitch'?'https://www.twitch.tv/directory':'https://kick.com/',online:true,desc:`${c[0]} is broadcasting a high-energy ${c[2].toLowerCase()} experience with a rapidly moving live chat.`})),
-      ...kickChannels.map((c,i)=>{ const id=baseCreators.length+i; return {id,name:c[0],platform:'Kick',category:'Gaming',viewers:c[2],title:c[1]?`${c[0]} is live on Kick`:`${c[0]} is currently offline`,duration:c[1]?`${1+i%4}h ${String(15+i*4).slice(-2)}m`:'Offline',rank:id+1,verified:false,avatar:`https://api.dicebear.com/9.x/thumbs/svg?seed=${c[0]}`,thumb:`https://picsum.photos/seed/kick-${c[0]}/900/520`,video:videos[i%2],followers:(5200+i*1360).toLocaleString(),link:`https://kick.com/${c[0]}`,online:c[1],desc:`${c[0]} is a suggested Kick channel. Status: ${c[1]?'Online / live':'Offline / not live'}.`}; })
-    ];
-    const suggestedKick = creators.filter(c => c.platform === 'Kick' && c.id >= baseCreators.length);
+    const creators = channelNames.map((name, i) => ({
+      id: i,
+      name,
+      platform: 'Kick',
+      category: 'Gaming',
+      title: `${name} on Kick`,
+      duration: 'Kick channel',
+      rank: i + 1,
+      verified: false,
+      avatar: `https://api.dicebear.com/9.x/thumbs/svg?seed=${name}`,
+      thumb: `https://picsum.photos/seed/kick-${name}/900/520`,
+      video: videos[i % videos.length],
+      followers: 'Kick',
+      link: `https://kick.com/${name}`,
+      desc: `${name} is one of the requested Kick channels.`
+    }));
 
     let activeFilter = 'All', search = '', hoverTimer, lastPreview = creators[0];
     const $ = s => document.querySelector(s);
-    const fmt = n => n >= 1000 ? (n/1000).toFixed(n>99999?0:1)+'K' : n;
     const filters = $('#filters');
     platforms.forEach(p => { const b=document.createElement('button'); b.className='chip'+(p==='All'?' active':''); b.textContent=p; b.onclick=()=>{activeFilter=p; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render();}; filters.appendChild(b); });
 
-    function cardHTML(c){ const status=c.online?'Online / Live':'Offline'; const viewers=c.online?`${fmt(c.viewers)} viewers`:'No live stream'; return `<article class="card glass" data-id="${c.id}"><div class="thumb-wrap"><img class="thumb" src="${c.thumb}" alt="${c.title}"><video class="preview-video" muted loop playsinline src="${c.video}"></video><span class="pill trend ${c.online?'status-live':'status-offline'}">${status}</span><span class="pill platform">${c.platform}</span><div class="overlay-controls"><span class="pill">▶ muted preview</span><span class="pill liveViewers">${c.online?fmt(c.viewers)+' watching':'Offline'}</span></div></div><div class="card-body"><div class="creator-row"><img class="avatar" data-profile="${c.id}" src="${c.avatar}" alt="${c.name}"><div><b>${c.name} ${c.verified?'<span class="verify">◆</span>':''}</b><div class="mini">${c.category} • ${c.duration}</div></div><span class="rank">#${c.rank}</span></div><h4>${c.title}</h4><div class="meta"><span>${viewers}</span><span>•</span><span>${c.platform}</span><span>•</span><span>${c.category}</span><span>•</span><span>${status}</span></div><div class="chat-preview"><div class="chat-line">NovaFan: this preview is insane 🔥</div><div class="chat-line">PixelBot: viewer count is exploding</div><div class="chat-line">Luna: clip this moment!</div></div></div></article>`; }
+    function cardHTML(c){ return `<article class="card glass" data-id="${c.id}"><div class="thumb-wrap"><img class="thumb" src="${c.thumb}" alt="${c.title}"><video class="preview-video" muted loop playsinline src="${c.video}"></video><span class="pill trend status-offline">Kick Channel</span><span class="pill platform">${c.platform}</span><div class="overlay-controls"><span class="pill">▶ muted preview</span><span class="pill actionLabel">Open on Kick</span></div></div><div class="card-body"><div class="creator-row"><img class="avatar" data-profile="${c.id}" src="${c.avatar}" alt="${c.name}"><div><b>${c.name}</b><div class="mini">${c.category} • ${c.duration}</div></div><span class="rank">#${c.rank}</span></div><h4>${c.title}</h4><div class="meta"><span>${c.platform}</span><span>•</span><span>${c.category}</span><span>•</span><span><a href="${c.link}" target="_blank" rel="noreferrer">${c.link}</a></span></div></div></article>`; }
     function filtered(){ return creators.filter(c => (activeFilter==='All'||c.platform===activeFilter||c.category===activeFilter) && (c.name+c.title+c.category+c.platform).toLowerCase().includes(search)); }
-    function render(){ const list=filtered(); $('#grid').innerHTML=list.map(cardHTML).join(''); $('#recommended').innerHTML=suggestedKick.map(cardHTML).join(''); $('#resultCount').textContent=`${list.length} channels found`; bindCards(); }
-    function side(id, list){ $(id).innerHTML=list.map(c=>`<div class="side-item"><img class="avatar" data-profile="${c.id}" src="${c.avatar}"><div><b>${c.name}</b><div class="mini">${c.platform} • ${c.online?fmt(c.viewers)+' watching':'Offline'}</div></div><span class="rank">${c.online?'LIVE':'OFF'}</span></div>`).join(''); }
+    function render(){ const list=filtered(); $('#grid').innerHTML=list.map(cardHTML).join(''); $('#resultCount').textContent=`${list.length} channels found`; bindCards(); }
+    function side(id, list){ $(id).innerHTML=list.map(c=>`<div class="side-item"><img class="avatar" data-profile="${c.id}" src="${c.avatar}"><div><b>${c.name}</b><div class="mini">${c.platform} channel</div></div><span class="rank">#${c.rank}</span></div>`).join(''); }
     function bindCards(){ document.querySelectorAll('.card').forEach(card=>{ const c=creators[card.dataset.id], v=card.querySelector('video'); card.onmouseenter=()=>hoverTimer=setTimeout(()=>startPreview(card,c,v),1000); card.onmouseleave=()=>{clearTimeout(hoverTimer); stopPreview(card,v,c);}; card.onclick=e=>{ if(!e.target.classList.contains('avatar')) window.open(c.link,'_blank','noreferrer'); }; let press; card.ontouchstart=()=>press=setTimeout(()=>openMini(c),650); card.ontouchend=()=>clearTimeout(press); }); document.querySelectorAll('.avatar').forEach(a=>a.onclick=e=>{e.stopPropagation(); showProfile(creators[a.dataset.profile]);}); }
-    function startPreview(card,c,v){ lastPreview=c; card.classList.add('previewing'); v.play(); card.querySelector('.liveViewers').textContent=c.online?fmt(c.viewers+Math.floor(Math.random()*9000))+' watching':'Offline'; }
+    function startPreview(card,c,v){ lastPreview=c; card.classList.add('previewing'); v.play(); card.querySelector('.actionLabel').textContent='Open on Kick'; }
     function stopPreview(card,v,c){ if(card.classList.contains('previewing')) openMini(c); card.classList.remove('previewing'); v.pause(); }
     function openMini(c){ $('#miniTitle').textContent=c.title; $('#miniVideo').src=c.video; $('#miniVideo').play(); $('#miniPlayer').classList.add('show'); }
-    function showProfile(c){ $('#profileContent').innerHTML=`<img class="avatar" style="width:86px;height:86px" src="${c.avatar}"><h2>${c.name} ${c.verified?'◆':''}</h2><p>${c.desc}</p><p><b>${c.followers}</b> followers • ${c.platform}</p><p><a class="btn" href="${c.link}" target="_blank">Open channel</a></p><div class="meta"><span>@${c.name}</span><span>•</span><span>stream.social/${c.name.toLowerCase()}</span></div>`; $('#profileModal').classList.add('show'); }
+    function showProfile(c){ $('#profileContent').innerHTML=`<img class="avatar" style="width:86px;height:86px" src="${c.avatar}"><h2>${c.name}</h2><p>${c.desc}</p><p><b>${c.platform}</b> channel</p><p><a class="btn" href="${c.link}" target="_blank">Open channel</a></p><div class="meta"><span>@${c.name}</span><span>•</span><span>${c.link}</span></div>`; $('#profileModal').classList.add('show'); }
     $('#search').oninput=e=>{search=e.target.value.toLowerCase(); render();}; $('#closeModal').onclick=()=>$('#profileModal').classList.remove('show'); $('#closeMini').onclick=()=>$('#miniPlayer').classList.remove('show');
-    function boot(){ for(let i=0;i<85;i++){ const p=document.createElement('i'); p.className='particle'; p.style.setProperty('--x',Math.random()*100+'vw'); p.style.setProperty('--dx',(Math.random()*120-60)+'px'); p.style.setProperty('--duration',(8+Math.random()*14)+'s'); p.style.left='0'; p.style.animationDelay=(-Math.random()*14)+'s'; $('#particles').appendChild(p); } side('#trendingCreators', creators.slice(0,5)); side('#topLive', [...creators].sort((a,b)=>b.viewers-a.viewers).slice(0,5)); side('#sideRecommended', suggestedKick); side('#recentlyLive', creators.slice(15,20)); $('#statChannels').textContent=creators.length.toLocaleString(); $('#statViewers').textContent=creators.reduce((s,c)=>s+(c.online?c.viewers:0),0).toLocaleString(); setTimeout(()=>{$('#skeletons').style.display='none'; render();},900); setTimeout(()=>$('#toast').classList.add('show'),1400); setTimeout(()=>$('#toast').classList.remove('show'),6200); setInterval(()=>document.querySelectorAll('.liveViewers').forEach(x=>x.textContent=x.textContent==='Offline'?'Offline':fmt(20000+Math.random()*700000)+' watching'),2500); }
+    function boot(){ for(let i=0;i<85;i++){ const p=document.createElement('i'); p.className='particle'; p.style.setProperty('--x',Math.random()*100+'vw'); p.style.setProperty('--dx',(Math.random()*120-60)+'px'); p.style.setProperty('--duration',(8+Math.random()*14)+'s'); p.style.left='0'; p.style.animationDelay=(-Math.random()*14)+'s'; $('#particles').appendChild(p); } side('#kickChannelList', creators); $('#statChannels').textContent=creators.length.toLocaleString(); setTimeout(()=>{$('#skeletons').style.display='none'; render();},900); setTimeout(()=>$('#toast').classList.add('show'),1400); setTimeout(()=>$('#toast').classList.remove('show'),6200); }
     boot();
   </script>
 </body>
